@@ -6,8 +6,11 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev:api": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "start": "npm run dev:api" , 
-    "build" :"tsc"
+    "dev:email": "ts-node-dev --respawn --transpile-only src/workers/email.ts",
+    "dev:finance": "ts-node-dev --respawn --transpile-only src/workers/finance.ts",
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:email\" \"npm run dev:finance\"",
+    "start": "npm run dev",
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -45,6 +48,7 @@
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.5.0",
+    "concurrently": "^9.2.1",
     "prisma": "^7.6.0",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",

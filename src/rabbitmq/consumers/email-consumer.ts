@@ -1,22 +1,18 @@
 import { RabbitMQClient } from "../RabbitMQClient";
 import * as amqp from "amqplib";
 import { BREVO_API_KEY, BREVO_SENDER_EMAIL } from "../../config/env";
-const SibApiV3Sdk = require("@getbrevo/brevo");
+import { BrevoClient } from "@getbrevo/brevo";
 
 export class EmailConsumer {
   private client: RabbitMQClient;
   private readonly queueName = "email_queue";
-  private brevoInstance: any;
+  private brevoClient: BrevoClient;
 
   constructor(client: RabbitMQClient) {
     this.client = client;
-    this.initBrevo();
-  }
-
-  private initBrevo() {
-    this.brevoInstance = new SibApiV3Sdk.TransactionalEmailsApi();
-    let apiKey = SibApiV3Sdk.ApiClient.instance.authentications["api-key"];
-    apiKey.apiKey = BREVO_API_KEY;
+    this.brevoClient = new BrevoClient({
+      apiKey: BREVO_API_KEY
+    });
   }
 
   public async start() {
@@ -42,10 +38,25 @@ export class EmailConsumer {
               console.log(
                 `[EmailConsumer] Message processed and acknowledged.`,
               );
-            } catch (err) {
-              console.error(`[EmailConsumer] Error processing message:`, err);
-
-              channel.nack(msg, false, true);
+            } catch (err: any) {
+              const errorMessage = err?.body?.message || "";
+              
+              if (errorMessage.includes("unrecognised IP address")) {
+                console.error("\n" + "=".repeat(60));
+                console.error("⛔ BREVO SECURITY ALERT: IP ADDRESS NOT AUTHORIZED");
+                console.error("------------------------------------------------------------");
+                console.error(errorMessage);
+                console.error("------------------------------------------------------------");
+                console.error("👉 ACTION REQUIRED: Add your IP to the Brevo dashboard here:");
+                console.error("🔗 https://app.brevo.com/security/authorised_ips");
+                console.error("=".repeat(60) + "\n");
+                
+                // Do not requeue if the IP is not authorized (it will only keep failing)
+                channel.nack(msg, false, false);
+              } else {
+                console.error(`[EmailConsumer] Error processing message:`, err);
+                channel.nack(msg, false, true);
+              }
             }
           }
         },
@@ -56,22 +67,21 @@ export class EmailConsumer {
     }
   }
 
-  private async sendEmail(data: { to: string; subject: string; body: string }) {
-    const { to, subject, body } = data;
-
-    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
-    sendSmtpEmail.subject = subject;
-    sendSmtpEmail.htmlContent = body;
-    sendSmtpEmail.sender = {
-      name: "Finance Dashboard",
-      email: BREVO_SENDER_EMAIL,
-    };
-    sendSmtpEmail.to = [{ email: to }];
+  private async sendEmail(data: { email_to: string; subject: string; content: string }) {
+    const { email_to, subject, content } = data;
 
     try {
-      const result = await this.brevoInstance.sendTransacEmail(sendSmtpEmail);
+      const result = await this.brevoClient.transactionalEmails.sendTransacEmail({
+        subject: subject,
+        htmlContent: content,
+        sender: {
+          name: "Finance Dashboard",
+          email: BREVO_SENDER_EMAIL,
+        },
+        to: [{ email: email_to }],
+      });
       console.log(
-        `[EmailConsumer] Email sent successfully to ${to}. MessageId:`,
+        `[EmailConsumer] Email sent successfully to ${email_to}. MessageId:`,
         result.messageId,
       );
     } catch (error) {

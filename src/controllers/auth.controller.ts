@@ -36,7 +36,8 @@ export class AuthController {
   }
 
   public createUser = async (req: any, res: any) => {
-    const { name, email, password, role } = req.body;
+    let { name, email, password, role } = req.body;
+    email = email.trim().toLowerCase(); // Sanitize input
 
     try {
       const hashedPassword: string = await hashPassword(password);
@@ -76,9 +77,9 @@ export class AuthController {
         return res.status(500).json(new ApiError("Redis configuration error."));
       }
 
-      console.log("Saving OTP to Redis...");
-      await this.redis.set(redis_key, otp, "EX", otp_expire_time);
-      console.log("OTP saved successfully.");
+      console.log(`[Redis] Saving OTP for: ${email} (Key: ${redis_key})`);
+      await this.redis.set(redis_key, String(otp), { EX: otp_expire_time });
+      console.log("[Redis] OTP saved successfully.");
 
       return res.status(200).json(new ApiResponse("OTP sent successfully."));
     } catch (err: any) {
@@ -94,11 +95,15 @@ export class AuthController {
   };
 
   public verifySignupOtp = async (req: any, res: any) => {
-    const { email, otp } = req.body;
+    let { email, otp } = req.body;
+    email = email.trim().toLowerCase(); // Sanitize input
 
     try {
       const key = this.getRedisEmailKey(email);
+      console.log(`[Redis] Checking OTP for: ${email} (Key: ${key})`);
+      
       const storedOtp = await this.redis.get(key);
+      console.log(`[Redis] Store OTP: ${storedOtp} | Provided OTP: ${otp}`);
 
       if (!storedOtp || storedOtp !== String(otp)) {
         return res.status(404).json(new ApiError("OTP is expired or invalid."));

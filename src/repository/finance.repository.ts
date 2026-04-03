@@ -56,7 +56,25 @@ export class FinanceRepository {
       _sum: { amount: true }
     });
 
-    return { incomeCategories, expenseCategories, totals };
+    const recentActivity = await database.financialRecord.findMany({
+      where: { createdById: userId, deletedAt: null },
+      orderBy: { date: 'desc' },
+      take: 5
+    });
+
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    const trendsData = await database.financialRecord.findMany({
+      where: { 
+        createdById: userId, 
+        deletedAt: null,
+        date: { gte: sixMonthsAgo }
+      },
+      select: { amount: true, type: true, date: true }
+    });
+
+    return { incomeCategories, expenseCategories, totals, recentActivity, trendsData };
   }
 }
 

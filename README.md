@@ -64,4 +64,11 @@ Endpoints follow standard `/api/v1/*` patterns:
 - `/api/v1/finance/` (Dashboard Stats, View, Create, Update, Delete) [RBAC protected]
 - `/api/v1/auth/` (Login, Register, Refresh Token)
 
+### Postman Setup
+1. Open Postman.
+2. Click **Import** and select the `Finance-Dashboard.postman_collection.json` file from the project root.
+3. The collection includes a `baseUrl` variable set to `http://localhost:3000/api/v1`.
+4. **Automated Token Handling**: The `Login` and `Verify Signup` requests include a test script that automatically saves the `accessToken` to your environment.
+5. High-level folders (Finance, Users) are pre-configured to use **Bearer Token** authentication with the `{{accessToken}}` variable.
+
 This application serves as a demonstration of structured thinking about business rules, security handling, and asynchronous API design.

@@ -28,13 +28,16 @@ export class FinanceService {
   }
 
   async getRecords(userId: string, query: any) {
-    const { type, category, startDate, endDate, page = 1, limit = 10 } = query;
+    const { type, category, startDate, endDate, search, page = 1, limit = 10 } = query;
     const skip = (Number(page) - 1) * Number(limit);
     const take = Number(limit);
 
     const where: Prisma.FinancialRecordWhereInput = { createdById: userId, deletedAt: null };
     if (type) where.type = type;
     if (category) where.category = category;
+    if (search) {
+      where.description = { contains: search, mode: 'insensitive' };
+    }
     if (startDate || endDate) {
       where.date = {};
       if (startDate) where.date.gte = new Date(startDate);
@@ -115,13 +118,28 @@ export class FinanceService {
       if (t.type === 'INCOME') totalIncome = t._sum?.amount || 0;
       if (t.type === 'EXPENSE') totalExpense = t._sum?.amount || 0;
     });
+
+    const monthlyTrendsMap = new Map();
+    stats.trendsData.forEach((rec) => {
+      const month = new Date(rec.date).toISOString().slice(0, 7); // "YYYY-MM"
+      if (!monthlyTrendsMap.has(month)) {
+        monthlyTrendsMap.set(month, { month, income: 0, expense: 0 });
+      }
+      const current = monthlyTrendsMap.get(month);
+      if (rec.type === 'INCOME') current.income += rec.amount;
+      if (rec.type === 'EXPENSE') current.expense += rec.amount;
+    });
+
+    const monthlyTrends = Array.from(monthlyTrendsMap.values()).sort((a, b) => a.month.localeCompare(b.month));
     
     return {
       totalIncome,
       totalExpense,
       netBalance: totalIncome - totalExpense,
       incomeByCategory: stats.incomeCategories.map(c => ({ category: c.category, amount: c._sum?.amount || 0 })),
-      expenseByCategory: stats.expenseCategories.map(c => ({ category: c.category, amount: c._sum?.amount || 0 }))
+      expenseByCategory: stats.expenseCategories.map(c => ({ category: c.category, amount: c._sum?.amount || 0 })),
+      recentActivity: stats.recentActivity,
+      monthlyTrends
     };
   }
 }
