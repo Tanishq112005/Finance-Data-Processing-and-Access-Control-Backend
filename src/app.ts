@@ -8,6 +8,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 import authRoutes from "./routes/auth.routes";
+import financeRoutes from "./routes/finance.routes";
 
 app.get("/health", (req: Request, res: Response) => {
   res
@@ -16,6 +17,7 @@ app.get("/health", (req: Request, res: Response) => {
 });
 
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/finance", financeRoutes);
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof ApiError) {
