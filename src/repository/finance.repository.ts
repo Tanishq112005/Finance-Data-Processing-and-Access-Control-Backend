@@ -7,7 +7,7 @@ export class FinanceRepository {
   }
 
   async findById(id: string) {
-    return await database.financialRecord.findUnique({ where: { id } });
+    return await database.financialRecord.findFirst({ where: { id, deletedAt: null } });
   }
 
   async findMany(where: Prisma.FinancialRecordWhereInput, skip?: number, take?: number) {
@@ -31,25 +31,28 @@ export class FinanceRepository {
   }
 
   async delete(id: string) {
-    return await database.financialRecord.delete({ where: { id } });
+    return await database.financialRecord.update({ 
+      where: { id },
+      data: { deletedAt: new Date() }
+    });
   }
 
   async getDashboardStats(userId: string) {
     const incomeCategories = await database.financialRecord.groupBy({
       by: ['category'],
-      where: { createdById: userId, type: 'INCOME' },
+      where: { createdById: userId, type: 'INCOME', deletedAt: null },
       _sum: { amount: true }
     });
 
     const expenseCategories = await database.financialRecord.groupBy({
       by: ['category'],
-      where: { createdById: userId, type: 'EXPENSE' },
+      where: { createdById: userId, type: 'EXPENSE', deletedAt: null },
       _sum: { amount: true }
     });
 
     const totals = await database.financialRecord.groupBy({
       by: ['type'],
-      where: { createdById: userId },
+      where: { createdById: userId, deletedAt: null },
       _sum: { amount: true }
     });
 

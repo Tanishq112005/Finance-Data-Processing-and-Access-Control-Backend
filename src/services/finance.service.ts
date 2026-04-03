@@ -32,7 +32,7 @@ export class FinanceService {
     const skip = (Number(page) - 1) * Number(limit);
     const take = Number(limit);
 
-    const where: Prisma.FinancialRecordWhereInput = { createdById: userId };
+    const where: Prisma.FinancialRecordWhereInput = { createdById: userId, deletedAt: null };
     if (type) where.type = type;
     if (category) where.category = category;
     if (startDate || endDate) {
@@ -112,16 +112,16 @@ export class FinanceService {
     let totalExpense = 0;
     
     stats.totals.forEach(t => {
-      if (t.type === 'INCOME') totalIncome = t._sum.amount || 0;
-      if (t.type === 'EXPENSE') totalExpense = t._sum.amount || 0;
+      if (t.type === 'INCOME') totalIncome = t._sum?.amount || 0;
+      if (t.type === 'EXPENSE') totalExpense = t._sum?.amount || 0;
     });
     
     return {
       totalIncome,
       totalExpense,
       netBalance: totalIncome - totalExpense,
-      incomeByCategory: stats.incomeCategories.map(c => ({ category: c.category, amount: c._sum.amount })),
-      expenseByCategory: stats.expenseCategories.map(c => ({ category: c.category, amount: c._sum.amount }))
+      incomeByCategory: stats.incomeCategories.map(c => ({ category: c.category, amount: c._sum?.amount || 0 })),
+      expenseByCategory: stats.expenseCategories.map(c => ({ category: c.category, amount: c._sum?.amount || 0 }))
     };
   }
 }

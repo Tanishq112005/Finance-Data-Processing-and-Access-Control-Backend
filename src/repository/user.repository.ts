@@ -202,6 +202,38 @@ export class UserRepository {
     );
     return { success: true };
   }
+
+  async getAllUsers(skip?: number, take?: number) {
+    try {
+      return await this.db.user.findMany({
+        skip,
+        take,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          isVerified: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+    } catch (error) {
+      console.error("[UserRepository] getAllUsers failed:", error);
+      throw new Error(`Could not fetch users: ${(error as Error).message}`);
+    }
+  }
+
+  async countUsers() {
+    try {
+      return await this.db.user.count();
+    } catch (error) {
+      console.error("[UserRepository] countUsers failed:", error);
+      throw new Error(`Could not count users: ${(error as Error).message}`);
+    }
+  }
 }
 
 export const userRepository = new UserRepository(database);

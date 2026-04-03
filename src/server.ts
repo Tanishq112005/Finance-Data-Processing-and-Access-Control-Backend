@@ -1,9 +1,40 @@
+import express, { Request, Response, NextFunction } from "express";
 import { PORT } from "./config/env";
-import app from "./app";
-
 import { connectRedis, redisClient } from "./lib/redis";
 import { RabbitMQClient } from "./rabbitmq/RabbitMQClient";
 import { database } from "./lib/db";
+import ApiError from "./utils/ApiError";
+import ApiResponse from "./utils/ApiResponse";
+
+import authRoutes from "./routes/auth.routes";
+import financeRoutes from "./routes/finance.routes";
+import userRoutes from "./routes/user.routes";
+
+const app = express();
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.get("/health", (req: Request, res: Response) => {
+  res
+    .status(200)
+    .json(new ApiResponse("Server is healthy", { uptime: process.uptime() }));
+});
+
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/finance", financeRoutes);
+app.use("/api/v1/users", userRoutes);
+
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  if (err instanceof ApiError) {
+    return res.status(err.errors?.status || 500).json(err);
+  }
+
+  console.error("[Unhandled Error]", err);
+  return res
+    .status(500)
+    .json(new ApiError("Internal Server Error", { details: err.message }));
+});
 
 const startServer = async () => {
   try {
@@ -26,7 +57,7 @@ const startServer = async () => {
         console.log("[Server] Closed.");
 
         try {
-          await database.$connect();
+          await database.$disconnect();
 
           if (redisClient.isOpen) {
             await redisClient.quit();
