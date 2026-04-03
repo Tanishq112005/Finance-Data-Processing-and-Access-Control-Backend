@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  VIEWER
+  ANALYST
+  ADMIN
+}
+
+enum RecordType {
+  INCOME
+  EXPENSE
+}
+
+model User {
+  id           String            @id @default(uuid())
+  name         String
+  email        String            @unique
+  passwordHash String            // bcrypt hashed password
+  role         Role              @default(VIEWER)
+  refreshToken String?           // nullable — cleared on logout
+  isVerified   Boolean           @default(false)
+  isActive     Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  records      FinancialRecord[]
+}
+
+model FinancialRecord {
+  id          String     @id @default(uuid())
+  amount      Float
+  type        RecordType
+  category    String
+  date        DateTime
+  description String?
+  createdById String
+  createdBy   User       @relation(fields: [createdById], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
