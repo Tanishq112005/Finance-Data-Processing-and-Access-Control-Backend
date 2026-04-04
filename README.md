@@ -18,6 +18,8 @@ This is the backend implementation for the Finance Dashboard assignment. The sys
 - **Rate Limiting:** IP-based request throttling using Redis to prevent brute-forcing.
 
 ### Asynchronous Data Flow (Write-Behind Model)
+**Architectural Decision Note:** This assignment explicitly values structure over "unnecessary complexity". While Redis and RabbitMQ are technically an advanced setup for basic CRUD operations, they were explicitly chosen to demonstrate knowledge of high-performance architecture. By offloading writes and emails to background workers via message queues, the API responds significantly faster and avoids blocking the main thread during heavy load. 
+
 To ensure the API remains extremely fast and can handle high throughput, write operations are offloaded to background workers. The process follows a write-behind pattern utilizing Redis for temporary state and RabbitMQ for task queuing:
 
 ```mermaid
@@ -70,6 +72,15 @@ graph TD
    ```bash
    npm run start
    ```
+
+## Testing
+
+This project includes isolated unit and integration tests configured using **Jest** and **Supertest**. Tests bypass the actual database and services by heavily mocking external dependencies, ensuring they are extremely fast and reproducible.
+
+To run the full test suite:
+```bash
+npm run test
+```
 
 ## API Documentation
 
@@ -295,9 +306,17 @@ All endpoints are prefixed with `/api/v1`.
         "totalIncome": 5000,
         "totalExpense": 2000,
         "netBalance": 3000,
-        "categoryBreakdown": [
-          { "category": "Food", "amount": 500 },
-          { "category": "Rent", "amount": 1500 }
+        "incomeByCategory": [
+          { "category": "Salary", "amount": 5000 }
+        ],
+        "expenseByCategory": [
+          { "category": "Food", "amount": 500 }
+        ],
+        "recentActivity": [
+          { "id": "uuid", "amount": 500, "type": "EXPENSE", "category": "Food", "date": "2024-03-20T10:00:00Z" }
+        ],
+        "monthlyTrends": [
+          { "month": "2024-03", "income": 5000, "expense": 500 }
         ]
       }
     }
