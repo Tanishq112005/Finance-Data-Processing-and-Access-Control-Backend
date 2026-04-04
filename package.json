@@ -10,7 +10,10 @@
     "dev:email": "ts-node-dev --respawn --transpile-only src/workers/email.ts",
     "dev:finance": "ts-node-dev --respawn --transpile-only src/workers/finance.ts",
     "dev": "concurrently \"npm run dev:api\" \"npm run dev:email\" \"npm run dev:finance\"",
-    "start": "npm run dev",
+    "start:api": "node dist/server.js",
+    "start:email": "node dist/workers/email.js",
+    "start:finance": "node dist/workers/finance.js",
+    "start": "concurrently \"npm run start:api\" \"npm run start:email\" \"npm run start:finance\"",
     "build": "tsc"
   },
   "repository": {
