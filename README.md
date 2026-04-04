@@ -17,6 +17,21 @@ This is the backend implementation for the Finance Dashboard assignment. The sys
 - **Database:** Prisma with PostgreSQL.
 - **Rate Limiting:** IP-based request throttling using Redis to prevent brute-forcing.
 
+### Asynchronous Data Flow (Write-Behind Model)
+To ensure the API remains extremely fast and can handle high throughput, write operations are offloaded to background workers. The process follows a write-behind pattern utilizing Redis for temporary state and RabbitMQ for task queuing:
+
+```mermaid
+graph TD
+    Client(["👤 Client Request"]) -->|1. API Call| API["🖥️ API Server"]
+    API -->|2. Save Temporary State| Redis[("⚡ Redis Cache\n(Temporary Data)")]
+    API -->|3. Publish Event| RabbitMQ{{"🐰 RabbitMQ\n(Message Queue)"}}
+    API -.->|4. Fast Success Response| Client
+    
+    RabbitMQ -->|5. Consume Task| Worker["⚙️ Background Worker"]
+    Worker -->|6. Process & Save reliably| Database[("🗄️ PostgreSQL DB\n(Persistent Storage)")]
+    Worker -->|7. Delete temp data on success| Redis
+```
+
 ## Requirements
 - Node.js
 - PostgreSQL
