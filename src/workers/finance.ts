@@ -3,6 +3,7 @@ import { rabbitMQClient } from "../rabbitmq/connection/rabbitmq-connection";
 import { FinanceConsumer } from "../rabbitmq/consumers/finance-consumer";
 import { connectRedis } from "../lib/redis";
 import { database } from "../lib/db";
+import { FINACE_WORKER_PORT } from "../config/env";
 
 const startFinanceWorker = async () => {
   try {
@@ -18,7 +19,7 @@ const startFinanceWorker = async () => {
     console.log("✅ Finance Worker is now listening for messages...");
 
     const app = express();
-    const port = 3002;
+    const port = FINACE_WORKER_PORT || 3002;
 
     app.get("/health", (req: any, res: any) => {
       res.send("Finance Worker is Running 🚀");
