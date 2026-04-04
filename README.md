@@ -56,13 +56,237 @@ This is the backend implementation for the Finance Dashboard assignment. The sys
    npm run start
    ```
 
-## Included Postman / API Usage
-Endpoints follow standard `/api/v1/*` patterns:
-- `/api/v1/users` (Fetch users) [ADMIN ONLY]
-- `/api/v1/users/:id/role` (Update specific role) [ADMIN ONLY]
-- `/api/v1/users/:id/status` (Toggle active state) [ADMIN ONLY]
-- `/api/v1/finance/` (Dashboard Stats, View, Create, Update, Delete) [RBAC protected]
-- `/api/v1/auth/` (Login, Register, Refresh Token)
+## API Documentation
+
+All endpoints are prefixed with `/api/v1`.
+
+### 🔐 Authentication API
+
+#### 1. Register User
+*   **URL**: `/auth/register`
+*   **Method**: `POST`
+*   **Body**:
+    ```json
+    {
+      "name": "John Doe",
+      "email": "john@example.com",
+      "password": "securepassword",
+      "role": "ANALYST" 
+    }
+    ```
+*   **Response** (200 OK):
+    ```json
+    {
+      "status": 200,
+      "message": "OTP sent successfully."
+    }
+    ```
+
+#### 2. Verify Signup OTP
+*   **URL**: `/auth/verify-signup`
+*   **Method**: `POST`
+*   **Body**:
+    ```json
+    {
+      "email": "john@example.com",
+      "otp": "123456"
+    }
+    ```
+*   **Response** (200 OK):
+    ```json
+    {
+      "status": 200,
+      "message": "Account verified and logged in successfully",
+      "data": {
+        "accessToken": "ey..."
+      }
+    }
+    ```
+
+#### 3. Login
+*   **URL**: `/auth/login`
+*   **Method**: `POST`
+*   **Body**:
+    ```json
+    {
+      "email": "john@example.com",
+      "password": "securepassword",
+      "rememberMe": true
+    }
+    ```
+*   **Response** (200 OK):
+    ```json
+    {
+      "status": 200,
+      "message": "Login successful.",
+      "data": {
+        "accessToken": "ey..."
+      }
+    }
+    ```
+
+#### 4. Refresh Token
+*   **URL**: `/auth/refresh-token`
+*   **Method**: `POST`
+*   **Body**: `{ "refreshToken": "..." }` (Optional if cookie is present)
+*   **Response** (200 OK):
+    ```json
+    {
+      "status": 200,
+      "message": "Access token refreshed.",
+      "data": {
+        "accessToken": "ey..."
+      }
+    }
+    ```
+
+#### 5. Forgot Password
+*   **URL**: `/auth/forgot-password`
+*   **Method**: `POST`
+*   **Body**: `{ "email": "john@example.com" }`
+*   **Response** (200 OK):
+    ```json
+    {
+      "status": 200,
+      "message": "If an account exists, a code has been sent to your email."
+    }
+    ```
+
+#### 6. Verify Forgot Password OTP
+*   **URL**: `/auth/verify-forgot-password`
+*   **Method**: `POST`
+*   **Body**: `{ "email": "john@example.com", "otp": "123456" }`
+*   **Response** (200 OK):
+    ```json
+    {
+      "status": 200,
+      "message": "OTP verified successfully.",
+      "data": { "accessToken": "ey..." }
+    }
+    ```
+
+#### 7. Reset Password
+*   **URL**: `/auth/reset-password`
+*   **Method**: `POST`
+*   **Headers**: `Authorization: Bearer <accessToken>`
+*   **Body**: `{ "password": "newsecurepassword" }`
+*   **Response** (200 OK):
+    ```json
+    {
+      "status": 200,
+      "message": "Password changed successfully. Please log in again."
+    }
+    ```
+
+---
+
+### 👥 User Management API (Admin Only)
+
+#### 1. Fetch All Users
+*   **URL**: `/users`
+*   **Method**: `GET`
+*   **Query Params**: `page` (default 1), `limit` (default 10)
+*   **Response** (200 OK):
+    ```json
+    {
+      "status": 200,
+      "message": "Users fetched successfully",
+      "data": {
+        "users": [
+          { "id": "uuid", "name": "John", "email": "john@example.com", "role": "ANALYST", "isActive": true }
+        ],
+        "pagination": { "total": 1, "page": 1, "limit": 10 }
+      }
+    }
+    ```
+
+#### 2. Update User Role
+*   **URL**: `/users/:id/role`
+*   **Method**: `PATCH`
+*   **Body**: `{ "role": "ADMIN" | "ANALYST" | "VIEWER" }`
+*   **Response** (200 OK):
+    ```json
+    {
+      "status": 200,
+      "message": "User role updated successfully",
+      "data": { "id": "uuid", "role": "ADMIN" }
+    }
+    ```
+
+#### 3. Toggle User Status
+*   **URL**: `/users/:id/status`
+*   **Method**: `PATCH`
+*   **Body**: `{ "isActive": false }`
+*   **Response** (200 OK):
+    ```json
+    {
+      "status": 200,
+      "message": "User status updated successfully",
+      "data": { "id": "uuid", "isActive": false }
+    }
+    ```
+
+---
+
+### 💰 Finance API
+
+#### 1. Create Financial Record
+*   **URL**: `/finance`
+*   **Method**: `POST`
+*   **Body**:
+    ```json
+    {
+      "amount": 1500.50,
+      "type": "INCOME",
+      "category": "Salary",
+      "date": "2024-03-20T10:00:00Z",
+      "description": "Monthly paycheck"
+    }
+    ```
+*   **Response** (201 Created):
+    ```json
+    {
+      "status": 201,
+      "message": "Record created successfully",
+      "data": { "id": "uuid", "amount": 1500.5, "type": "INCOME", ... }
+    }
+    ```
+
+#### 2. Fetch Financial Records
+*   **URL**: `/finance`
+*   **Method**: `GET`
+*   **Query Params**: `type` (INCOME/EXPENSE), `category`, `startDate`, `endDate`, `page`, `limit`
+*   **Response** (200 OK):
+    ```json
+    {
+      "status": 200,
+      "message": "Records fetched successfully",
+      "data": {
+        "records": [...],
+        "pagination": { ... }
+      }
+    }
+    ```
+
+#### 3. Dashboard Summary
+*   **URL**: `/finance/dashboard/summary`
+*   **Method**: `GET`
+*   **Response** (200 OK):
+    ```json
+    {
+      "status": 200,
+      "message": "Dashboard summary fetched successfully",
+      "data": {
+        "totalIncome": 5000,
+        "totalExpense": 2000,
+        "netBalance": 3000,
+        "categoryBreakdown": [
+          { "category": "Food", "amount": 500 },
+          { "category": "Rent", "amount": 1500 }
+        ]
+      }
+    }
+    ```
 
 ### Postman Setup
 1. Open Postman.
