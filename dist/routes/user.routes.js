@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const user_controller_1 = require("../controllers/user.controller");
+const auth_middleware_1 = require("../middlewares/auth.middleware");
+const RateLimiter_1 = require("../middlewares/RateLimiter");
+const router = (0, express_1.Router)();
+const userRateLimiter = new RateLimiter_1.RateLimiter("user_req");
+router.use(userRateLimiter.limit);
+router.use(auth_middleware_1.isAuthenticated);
+router.use((0, auth_middleware_1.authorizeRoles)("ADMIN"));
+router.get("/", user_controller_1.userController.getAllUsers.bind(user_controller_1.userController));
+router.put("/:id/role", user_controller_1.userController.updateUserRole.bind(user_controller_1.userController));
+router.put("/:id/status", user_controller_1.userController.updateUserStatus.bind(user_controller_1.userController));
+exports.default = router;

@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const finance_controller_1 = require("../controllers/finance.controller");
+const auth_middleware_1 = require("../middlewares/auth.middleware");
+const RateLimiter_1 = require("../middlewares/RateLimiter");
+const router = (0, express_1.Router)();
+const financeRateLimiter = new RateLimiter_1.RateLimiter("finance_req");
+router.use(financeRateLimiter.limit);
+router.use(auth_middleware_1.isAuthenticated);
+router.get("/dashboard", (0, auth_middleware_1.authorizeRoles)("ADMIN", "ANALYST", "VIEWER"), finance_controller_1.financeController.getDashboardSummary.bind(finance_controller_1.financeController));
+router.post("/", (0, auth_middleware_1.authorizeRoles)("ADMIN"), finance_controller_1.financeController.createRecord.bind(finance_controller_1.financeController));
+router.get("/", (0, auth_middleware_1.authorizeRoles)("ADMIN", "ANALYST"), finance_controller_1.financeController.getRecords.bind(finance_controller_1.financeController));
+router.put("/:id", (0, auth_middleware_1.authorizeRoles)("ADMIN"), finance_controller_1.financeController.updateRecord.bind(finance_controller_1.financeController));
+router.delete("/:id", (0, auth_middleware_1.authorizeRoles)("ADMIN"), finance_controller_1.financeController.deleteRecord.bind(finance_controller_1.financeController));
+exports.default = router;
