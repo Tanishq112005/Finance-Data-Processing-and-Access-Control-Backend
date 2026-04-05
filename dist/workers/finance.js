@@ -8,6 +8,7 @@ const rabbitmq_connection_1 = require("../rabbitmq/connection/rabbitmq-connectio
 const finance_consumer_1 = require("../rabbitmq/consumers/finance-consumer");
 const redis_1 = require("../lib/redis");
 const db_1 = require("../lib/db");
+const env_1 = require("../config/env");
 const startFinanceWorker = async () => {
     try {
         console.log("💰 Starting Finance Worker Service...");
@@ -18,7 +19,7 @@ const startFinanceWorker = async () => {
         await financeConsumer.start();
         console.log("✅ Finance Worker is now listening for messages...");
         const app = (0, express_1.default)();
-        const port = 3002;
+        const port = env_1.FINACE_WORKER_PORT || 3000;
         app.get("/health", (req, res) => {
             res.send("Finance Worker is Running 🚀");
         });

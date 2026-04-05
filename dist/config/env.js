@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.EMAIL_WORKER_PORT = exports.OTP_EXPIRE_TIME = exports.BREVO_SENDER_EMAIL = exports.BREVO_API_KEY = exports.RABBITMQ_PASSWORD = exports.RABBITMQ_URL = exports.WINDOW_SIZE = exports.MAX_ATTEMPTS = exports.REDIS_URL = exports.JWT_REFRESH_SECRET = exports.JWT_SECRET = exports.DATABASE_URL = exports.PORT = void 0;
+exports.FINACE_WORKER_PORT = exports.EMAIL_WORKER_PORT = exports.OTP_EXPIRE_TIME = exports.BREVO_SENDER_EMAIL = exports.BREVO_API_KEY = exports.RABBITMQ_PASSWORD = exports.RABBITMQ_URL = exports.WINDOW_SIZE = exports.MAX_ATTEMPTS = exports.REDIS_URL = exports.JWT_REFRESH_SECRET = exports.JWT_SECRET = exports.DATABASE_URL = exports.PORT = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
 dotenv_1.default.config({ path: path_1.default.resolve(__dirname, "../../.env") });
@@ -27,3 +27,4 @@ exports.BREVO_API_KEY = requireEnv("BREVO_API_KEY");
 exports.BREVO_SENDER_EMAIL = requireEnv("BREVO_SENDER_EMAIL");
 exports.OTP_EXPIRE_TIME = requireEnv("OTP_EXPIRE_TIME");
 exports.EMAIL_WORKER_PORT = process.env.EMAIL_WORKER_PORT || "3001";
+exports.FINACE_WORKER_PORT = process.env.FINACE_WORKER_PORT || "3002";
