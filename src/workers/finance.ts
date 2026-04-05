@@ -19,7 +19,7 @@ const startFinanceWorker = async () => {
     console.log("✅ Finance Worker is now listening for messages...");
 
     const app = express();
-    const port = FINACE_WORKER_PORT || 3002;
+    const port = FINACE_WORKER_PORT || 3000;
 
     app.get("/health", (req: any, res: any) => {
       res.send("Finance Worker is Running 🚀");
