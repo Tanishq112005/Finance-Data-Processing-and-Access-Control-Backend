@@ -27,4 +27,4 @@ exports.BREVO_API_KEY = requireEnv("BREVO_API_KEY");
 exports.BREVO_SENDER_EMAIL = requireEnv("BREVO_SENDER_EMAIL");
 exports.OTP_EXPIRE_TIME = requireEnv("OTP_EXPIRE_TIME");
 exports.EMAIL_WORKER_PORT = process.env.EMAIL_WORKER_PORT || "3001";
-exports.FINACE_WORKER_PORT = process.env.FINACE_WORKER_PORT || "3002";
+exports.FINACE_WORKER_PORT = process.env.FINACE_WORKER_PORT || "3000";

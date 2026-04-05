@@ -33,4 +33,4 @@ export const OTP_EXPIRE_TIME = requireEnv("OTP_EXPIRE_TIME");
 
 export const EMAIL_WORKER_PORT = process.env.EMAIL_WORKER_PORT || "3001";
 
-export const FINACE_WORKER_PORT = process.env.FINACE_WORKER_PORT || "3002" ; 
+export const FINACE_WORKER_PORT = process.env.FINACE_WORKER_PORT || "3000" ; 
